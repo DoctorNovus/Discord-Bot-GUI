@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Discord.JS BOT GUI</title>
+        <link rel="stylesheet" type="text/css" href="index.css">
+
+    </head>
+
+    <body>
+        <div id="gui">
+            <div id="userandchannels">
+                <div id="guildchannel">
+                    <h1>Channels: </h1>
+                </div>
+                <div id="usersection">
+                    <img src="icon.png" id="avatar">
+                    <p>
+                        <div id="username">Name<br></div>
+                        <div id="discriminator">Discriminator</div>
+                        
+                    </p>
+                    <img src="settings.png" id="settings" title="Settings">
+                    <script>
+                    
+                    settings = document.getElementById("settings");
+                    settings.onclick = function(){
+                    settingspage =  document.getElementById('settingspage')
+                    settingspage.style.display = "block";
+                    }
+
+                    </script>
+                </div>
+            </div>
+
+            <div id="guild">
+                <h2>Guilds:</h2>
+            </div>
+
+            <div id="sendtext">
+                <form id="text" action="">
+                    <input id="b" autocomplete="off" /><button id="send">Send</button>
+                </form>
+            </div>
+
+            <div id="members">
+                <h2>Members</h2>
+            </div>
+
+            <div id="guildname">
+                Guild
+            </div>
+            
+            <div id="mid">
+                <div id="wordspace">
+                    Messages:
+                </div>
+                <script src="/socket.io/socket.io.js"></script>
+                <script src="/socket.io/socket.io.js"></script>
+                <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+                <script>
+                    $(function () {
+                        mid = document.getElementById('mid');
+                        //displaychannel = document.getElementById('displaychannel');
+                        sendtext = document.getElementById('b');
+                        guild = document.getElementById('guild');
+                        guildchannel = document.getElementById('guildchannel');
+                        members = document.getElementById('members');
+                        send = document.getElementById('send');
+                        usersection = document.getElementById("usersection");
+                        guildname = document.getElementById("guildname");
+
+                        guild.style.left = 0 + "px";
+                        guild.style.width = 125 + "px";
+
+                        guildchannel.style.left = guild.offsetWidth + "px";
+                        guildchannel.style.width = 250 + "px";
+
+                        usersection.style.width = 250 + "px";
+                        usersection.style.left = guild.offsetWidth + "px";
+
+                        guildname.style.width = 250 + "px";
+                        guildname.style.left = guild.offsetWidth + "px";
+
+                        send.style.width = 75 + "px";
+                        send.style.height = send.offsetWidth + "px";
+
+                        mid.style.width = window.innerWidth - guild.offsetWidth - guildchannel.offsetWidth - members.offsetWidth + "px";
+                        //displaychannel.style.width = window.innerWidth - guild.offsetWidth - guildchannel.offsetWidth - members.offsetWidth + "px";
+                        sendtext.style.width = window.innerWidth - guild.offsetWidth - guildchannel.offsetWidth - members.offsetWidth - send.offsetWidth + "px";
+
+                        
+                        //displaychannel.style.left = guild.offsetWidth + guildchannel.offsetWidth + "px";
+                        mid.style.left = guild.offsetWidth + guildchannel.offsetWidth + "px";
+                        sendtext.style.left = guild.offsetWidth + guildchannel.offsetWidth + "px";
+                        send.style.left = guild.offsetWidth + guildchannel.offsetWidth + sendtext.offsetWidth + "px";
+
+                        
+                        guild.style.height = window.innerHeight + "px";
+                        guildchannel.style.height = window.innerHeight + "px";
+                        members.style.height = window.innerHeight + "px";
+                        mid.style.height = window.innerHeight /*- displaychannel.offsetHeight */ - sendtext.offsetHeight + "px";
+
+
+                        var socket = io();
+
+                        $('#text').submit(function(e){
+                            e.preventDefault(); // prevents page reloading
+                            socket.emit('message', $('#b').val());
+                            $('#b').val('');
+                            return false;
+                        });
+
+                        socket.on('userload',function(user){
+                            avatar = document.getElementById('avatar');
+                            username = document.getElementById('username');
+                            discriminator = document.getElementById('discriminator');
+
+                            avatar.src = user.icon;
+                            username.innerHTML = " " + user.name;
+                            discriminator.innerHTML = " #" + user.discrim;
+                        });
+
+                        socket.on('channelmessage', function(msgs){
+                            wordspace = document.getElementById("wordspace");
+                            wordspace.innerHTML = "";
+                            for(message of msgs){
+                                const div = document.createElement('div');
+                                const h2 = document.createElement('h2');
+                                const h3 = document.createElement('h3')
+                                div.innerHTML = "<img src=" + message.src + ">"
+                                h2.innerText = message.author + "#" + message.discrim + ": "
+                                h2.style.color = message.color;
+                                h3.innerText = JSON.stringify(message.content);
+
+                                div.appendChild(h2);
+                                div.appendChild(h3);
+                                wordspace.appendChild(div);
+                            }
+                
+                        });
+
+                        socket.on('channels',function(channels){
+                            channelsection = document.getElementById("guildchannel");
+                            channelsection.innerHTML = "";
+                            for(const channel of channels){
+                                if(channel.type == "text"){
+                                    if(channel.visible == true){
+                                        const div = document.createElement('div');
+                                        div.innerHTML = "<h2>" + channel.name + "</h2>"
+                                        div.onclick = function(){
+                                            socket.emit('changechannel', channel.id);
+                                        }
+                                        channelsection.appendChild(div);
+                                    }
+                                }
+                            }
+                        });
+
+                        socket.on('members', function(members){
+                            membersection = document.getElementById("members");
+                            membersection.innerHTML = "";
+                            for(const user of members){
+                                const div = document.createElement('div');
+                                const img = document.createElement('img');
+                                const text = document.createElement('div');
+                                const br = document.createElement('br');
+                                if(user.icon == "null"){
+                                    img.src = "/icon.jpg";
+                                } else {
+                                    img.src = user.icon;
+                                }
+                                img.style.float = "left";
+                                text.style.float = "left";
+                                text.innerHTML = user.name;
+                                text.style.color = user.color;
+                                membersection.appendChild(div);
+                                div.appendChild(img);
+                                div.appendChild(text);
+                                div.appendChild(br);
+                            };
+                        });
+
+                        socket.on('images', function(guilds){
+                            document.getElementById('guild').innerHTML = "";
+                            for(const guild of guilds){
+                                const img = document.createElement('img');
+                                if(guild.icon == "null"){
+                                    img.src = "/icon.jpg";
+                                } else {
+                                    img.src = guild.icon;
+                                }
+
+                                img.onclick = function(){
+                                    socket.emit('changeguild', guild.id);
+                                }
+                                document.getElementById('guild').appendChild(img);
+                            }
+                        });
+
+                        socket.on('guildname', function(name){
+                            guildname.innerHTML = "<h2>" + name + "</h2>";
+                        });
+                    });
+                </script>
+            </div>
+
+            <div id="settingspage">
+                <div id="settingspages">
+                    <h2>Account</h2>
+                </div>
+
+                <button id="closesettings">
+                    X
+                </button>
+
+                <script>
+                let settingspage = document.getElementById('settingspage');
+                settingspage.style.height = window.innerHeight + "px";
+                settingspage.style.width = window.innerWidth + "px";
+                settingspage.style.backgroundColor = "blue";
+
+                let close = document.getElementById('closesettings');
+                
+                close.onclick = function(){
+                    settingspage.style.display = "none";
+                }
+
+                close.style.width = 30 + "px";
+                close.style.height = 30 + "px";
+                close.style.borderRadius = 100 + "px";
+
+                </script>
+
+            </div>
+        </div>
+    </body>
+</html>
