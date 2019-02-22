@@ -2,8 +2,8 @@ const Commando = require("discord.js-commando");
 const bot = new Commando.Client();
 
 //on ready
-bot.on('ready',function(){
-    console.log("Ready");
+bot.on('ready', () => {
+  console.log("Ready");
 });
 
 //on message
