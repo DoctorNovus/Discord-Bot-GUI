@@ -55,25 +55,25 @@
                     Messages:
                 </div>
                 <script src="/socket.io/socket.io.js"></script>
-                <script src="/socket.io/socket.io.js"></script>
                 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
                 <script>
                     $(function () {
-                        mid = document.getElementById('mid');
+                        let mid = document.getElementById('mid');
                         //displaychannel = document.getElementById('displaychannel');
-                        sendtext = document.getElementById('b');
-                        guild = document.getElementById('guild');
-                        guildchannel = document.getElementById('guildchannel');
-                        members = document.getElementById('members');
-                        send = document.getElementById('send');
-                        usersection = document.getElementById("usersection");
-                        guildname = document.getElementById("guildname");
+                        let sendtext = document.getElementById('b');
+                        let guild = document.getElementById('guild');
+                        let guildchannel = document.getElementById('guildchannel');
+                        let members = document.getElementById('members');
+                        let send = document.getElementById('send');
+                        let usersection = document.getElementById("usersection");
+                        let guildname = document.getElementById("guildname");
 
                         guild.style.left = 0 + "px";
                         guild.style.width = 125 + "px";
 
                         guildchannel.style.left = guild.offsetWidth + "px";
                         guildchannel.style.width = 250 + "px";
+                        guildchannel.style.top = guildname.offsetHeight + "px";
 
                         usersection.style.width = 250 + "px";
                         usersection.style.left = guild.offsetWidth + "px";
@@ -81,8 +81,8 @@
                         guildname.style.width = 250 + "px";
                         guildname.style.left = guild.offsetWidth + "px";
 
-                        send.style.width = 75 + "px";
-                        send.style.height = send.offsetWidth + "px";
+                        send.style.width = 60 + "px";
+                        send.style.height = send.offsetWidth - 5 + "px";
 
                         mid.style.width = window.innerWidth - guild.offsetWidth - guildchannel.offsetWidth - members.offsetWidth + "px";
                         //displaychannel.style.width = window.innerWidth - guild.offsetWidth - guildchannel.offsetWidth - members.offsetWidth + "px";
@@ -100,6 +100,7 @@
                         members.style.height = window.innerHeight + "px";
                         mid.style.height = window.innerHeight /*- displaychannel.offsetHeight */ - sendtext.offsetHeight + "px";
 
+                        mid.scrollTop = mid.scrollHeight;
 
                         var socket = io();
 
@@ -123,26 +124,43 @@
                         socket.on('channelmessage', function(msgs){
                             wordspace = document.getElementById("wordspace");
                             wordspace.innerHTML = "";
-                            for(message of msgs){
+                            for(message of msgs.reverse()){
                                 const div = document.createElement('div');
                                 const h2 = document.createElement('h2');
-                                const h3 = document.createElement('h3')
+                                const p = document.createElement('p')
+                                if(message.channel.type == "text"){
+                                    sendtext.placeholder = "Message #" + message.channel.name;
+                                } else {
+                                    sendtext.placeholder = "Message @" + message.channel.name;
+                                }
+                                
                                 div.innerHTML = "<img src=" + message.src + ">"
-                                h2.innerText = message.author + "#" + message.discrim + ": "
+                                h2.innerHTML = message.author + "#" + message.discrim + ": "
                                 h2.style.color = message.color;
-                                h3.innerText = JSON.stringify(message.content);
+                                let bob = message.content.replace(/\n/gi, '<br>');
+                                let messagecontent1 = bob.replace('**', '<b>');
+                                let message2 = JSON.stringify(messagecontent1.split('**', 1));
+                                let message3 = message2.replace('**', '</b>');
+                                let messagecontent = message3;
+                                
+                                let decompile1 = messagecontent.replace('["','');
+                                let decompile2 = decompile1.replace('"]','');
+
+                                p.innerHTML = decompile2;
 
                                 div.appendChild(h2);
-                                div.appendChild(h3);
+                                div.appendChild(p);
                                 wordspace.appendChild(div);
                             }
+                            mid = document.getElementById('mid')
+                            mid.scrollTop = mid.scrollHeight - mid.clientHeight;
                 
                         });
 
                         socket.on('channels',function(channels){
                             channelsection = document.getElementById("guildchannel");
                             channelsection.innerHTML = "";
-                            for(const channel of channels){
+                            for(let channel of channels){
                                 if(channel.type == "text"){
                                     if(channel.visible == true){
                                         const div = document.createElement('div');
@@ -150,8 +168,19 @@
                                         div.onclick = function(){
                                             socket.emit('changechannel', channel.id);
                                         }
+
                                         channelsection.appendChild(div);
+                                        if(channel.sendable == false){
+                                            sendtext.style.display = "none";
+                                            send.style.display = "none";
+                                        } 
+
+                                        if(channel.sendable == true){
+                                            sendtext.style.display = "block";
+                                            send.style.display = "block";
+                                        }
                                     }
+
                                 }
                             }
                         });
@@ -198,6 +227,10 @@
                         });
 
                         socket.on('guildname', function(name){
+                            let guildchannel = document.getElementById('guildchannel');
+                            let guildname = document.getElementById("guildname");
+
+                            guildchannel.style.top = guildname.offsetHeight + "px";
                             guildname.innerHTML = "<h2>" + name + "</h2>";
                         });
                     });

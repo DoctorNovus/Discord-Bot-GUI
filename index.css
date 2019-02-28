@@ -3,6 +3,7 @@ html,body{
     overflow-y: hidden;
     overflow-x: hidden;
     color: #F0F0F0;
+    font-family: 'Times New Roman', Times, serif;
 }
 ::-webkit-scrollbar {
     width: 0px;  /* remove scrollbar space */
@@ -56,6 +57,8 @@ html,body{
     height: 50px;
     background-color: #484c52;
     font-size: 20px;
+    font-family: fantasy;
+    color: #F0F0F0;
     border-radius: 10px;
     overflow: hidden;
 }
@@ -63,7 +66,7 @@ html,body{
 #sendtext button{
     position: absolute;
     bottom: 0px;
-    width: 60px;
+    width: 50px;
     height: 50px;
     background-color: #484c52;
     border-radius: 10px;
@@ -112,7 +115,6 @@ html,body{
 
 #guildchannel{
     position: absolute;
-    top: 50px;
     overflow-y: scroll;
     background-color: #444746;
     
